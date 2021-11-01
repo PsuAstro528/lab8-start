@@ -1,0 +1,24 @@
+# Julia environment
+deps/deps.jl
+Manifest.toml
+
+# Julia profiling
+*.jl.cov 
+*.jl.*.cov
+*.jl.mem
+
+# Outputs, intentional, but big
+data
+*.png
+
+# Export Pluto notebook outputs
+pluto_state_cache
+index.html
+# ex*.html
+
+# Jupyter files
+.ipynb_checkpoints
+*backkup*.jl
+core*
+
+
