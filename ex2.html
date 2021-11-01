@@ -672,7 +672,7 @@ div.title {text-align: center;}
 <span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>KernelAbstractions</span><span class='hljl-t'>   </span><span class='hljl-cs'># Allows writing code once for different brand GPUs</span><span class='hljl-t'>
 </span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>CUDA</span><span class='hljl-p'>,</span><span class='hljl-t'> </span><span class='hljl-n'>CUDAKernels</span><span class='hljl-t'>    </span><span class='hljl-cs'># for NVIDIA GPUs</span><span class='hljl-t'>
 </span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>BenchmarkTools</span><span class='hljl-t'>       </span><span class='hljl-cs'># for timing</span><span class='hljl-t'>
-</span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>Markdown</span>
+</span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>Markdown</span><span class='hljl-t'>             </span><span class='hljl-cs'># for responces</span>
 </pre>
 
 
@@ -1052,7 +1052,7 @@ gpu_calc_rv_circ_kernel&#41;
 
 
 <pre class="output">
-0.00015975876886054063
+0.0001597804759796151
 </pre>
 
 
@@ -1110,16 +1110,18 @@ CUDA.Mem.DeviceBuffer&#125;&#41;
 
 
 <pre class="output">
-BenchmarkTools.Trial: 233 samples with 1 evaluation.
- Range &#40;min … max&#41;:  4.246 ms …   8.374 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
- Time  &#40;median&#41;:     4.261 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   4.292 ms ± 270.121 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
+BenchmarkTools.Trial: 65 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  15.376 ms …  16.122 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00
+&#37;
+ Time  &#40;median&#41;:     15.523 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   15.604 ms ± 201.973 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00
+&#37;
 
-   ▁▁█▅▁                                                       
-  ▇█████▅▄▂▁▁▃▃▃▇▆▄██▄▃▁▃▁▁▃▁▁▁▁▂▃▁▃▂▂▁▁▁▁▁▁▁▁▁▂▁▁▂▁▁▁▁▁▁▁▁▁▂ ▃
-  4.25 ms         Histogram: frequency by time        4.41 ms &lt;
+      █                                                         
+  ▅▁▁▁██▃▁▃▄▄▁▅▄▁▁▅▁▃▃▃▁▁▃▃▃▁▃▄▁▅▃▁▄▃▁▃▁▃▃▁▁▁▁▃▁▁▁▃▁▁▃▃▃▁▁▁▃▁▃ ▁
+  15.4 ms         Histogram: frequency by time         16.1 ms &lt;
 
- Memory estimate: 3.98 KiB, allocs estimate: 67.
+ Memory estimate: 1.02 KiB, allocs estimate: 22.
 </pre>
 
 
@@ -1130,16 +1132,16 @@ BenchmarkTools.Trial: 233 samples with 1 evaluation.
 
 
 <pre class="output">
-BenchmarkTools.Trial: 6762 samples with 1 evaluation.
- Range &#40;min … max&#41;:  138.620 μs … 432.328 μs  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+BenchmarkTools.Trial: 6013 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  151.871 μs … 379.153 μs  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
 0&#37;
- Time  &#40;median&#41;:     141.597 μs               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   142.617 μs ±   5.841 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
+ Time  &#40;median&#41;:     153.803 μs               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   160.276 μs ±  15.384 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
 0&#37;
 
-       ▁▆█▇▅▃▁                                                   
-  ▁▁▁▁▄███████▇▆▄▃▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-  139 μs           Histogram: frequency by time          158 μs &lt;
+  ▇█▅▂▃▄▃▂      ▁ ▁▃▃▂▁▁       ▁             ▁                ▁ ▁
+  ████████▆▆▆▆▆▇█████████▅▅▅▄▆██▆▅▄▆▇▇▄▆▇▆▆▆▆███▇▆▅▃▄▄▃▄▅▆▅▃▁▆█ █
+  152 μs        Histogram: log&#40;frequency&#41; by time        225 μs &lt;
 
  Memory estimate: 3.77 KiB, allocs estimate: 77.
 </pre>
@@ -1194,14 +1196,14 @@ pu_calc_rv_circ_kernel&#41;
 
 
 <pre class="output">
-BenchmarkTools.Trial: 353 samples with 1 evaluation.
- Range &#40;min … max&#41;:  2.735 ms …  2.928 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
- Time  &#40;median&#41;:     2.820 ms              ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   2.818 ms ± 45.714 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
+BenchmarkTools.Trial: 355 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  2.700 ms …  2.909 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
+ Time  &#40;median&#41;:     2.795 ms              ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   2.803 ms ± 47.228 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
 
-            █                                                 
-  ▃▂▂▂▁▁▁▂▂▅█▆▅▃▃▂▁▃▄▃▃▂▃▃▃▄▁▃▃▃▃▃▃▄▃▃▄▃▃▃██▄▃▃▃▂▃▃▂▂▂▂▅▃▂▂▃ ▃
-  2.73 ms        Histogram: frequency by time         2.9 ms &lt;
+                █                          ▂                  
+  ▂▁▁▁▁▁▁▁▁▁▂▅▄▄█▅▅▃▃▂▅▆▃▄▅▅▃▄▆▃▃▃▄▄▃▂▃▃▃▃▃██▃▃▆▄▃▂▁▃▂▃▄▃▂▃▃ ▃
+  2.7 ms         Histogram: frequency by time         2.9 ms &lt;
 
  Memory estimate: 3.77 KiB, allocs estimate: 77.
 </pre>
@@ -1232,18 +1234,18 @@ missing
 
 
 <pre class="output">
-BenchmarkTools.Trial: 15 samples with 1 evaluation.
- Range &#40;min … max&#41;:  66.595 ms …  69.002 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00
-&#37;
- Time  &#40;median&#41;:     66.826 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   67.124 ms ± 755.383 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00
-&#37;
+BenchmarkTools.Trial: 5 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  240.966 ms … 241.675 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+0&#37;
+ Time  &#40;median&#41;:     241.409 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   241.369 ms ± 267.493 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
+0&#37;
 
-     ▃█ ▃                                                       
-  ▇▇▁██▇█▁▁▁▇▇▁▁▁▁▁▁▁▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▇▁▁▇ ▁
-  66.6 ms         Histogram: frequency by time           69 ms &lt;
+  █                          █          █        █            █  
+  █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
+  241 ms           Histogram: frequency by time          242 ms &lt;
 
- Memory estimate: 3.97 KiB, allocs estimate: 66.
+ Memory estimate: 1.00 KiB, allocs estimate: 21.
 </pre>
 
 
@@ -1283,16 +1285,16 @@ missing
 
 
 <pre class="output">
-BenchmarkTools.Trial: 1578 samples with 1 evaluation.
- Range &#40;min … max&#41;:  452.613 μs … 755.310 μs  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+BenchmarkTools.Trial: 1572 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  509.877 μs … 807.261 μs  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
 0&#37;
- Time  &#40;median&#41;:     611.948 μs               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   618.879 μs ±  45.713 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
+ Time  &#40;median&#41;:     606.907 μs               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   622.751 μs ±  53.878 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
 0&#37;
 
-                              █▂   ▇▁▂      ▁ ▂                  
-  ▂▁▁▁▁▁▁▂▂▂▂▁▂▁▁▂▁▃▅▃▃▄▄▅▄▄▅▇██▇▄▇███▇▇▆▄███▅█▇▇▆▄▆▇▅▄▅▃▃▃▂▇▄▃ ▄
-  453 μs           Histogram: frequency by time          720 μs &lt;
+                       █                                         
+  ▂▁▂▁▂▂▃▃▅▃▃▄▃▃▃▄▄▄▅▆▆██▅▄▃▄▆▃▅▅▄▃▄▅▄▃▃▃▃▄▃▃▃▅▄▃▄▆▃▄▃▃▃▂▂▂▃▄▃▃ ▃
+  510 μs           Histogram: frequency by time          742 μs &lt;
 
  Memory estimate: 3.77 KiB, allocs estimate: 77.
 </pre>
@@ -1306,14 +1308,14 @@ BenchmarkTools.Trial: 1578 samples with 1 evaluation.
 
 
 <pre class="output">
-BenchmarkTools.Trial: 88 samples with 1 evaluation.
- Range &#40;min … max&#41;:  11.294 ms … 11.453 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
- Time  &#40;median&#41;:     11.368 ms              ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   11.364 ms ± 43.913 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
+BenchmarkTools.Trial: 89 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  11.204 ms … 11.482 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
+ Time  &#40;median&#41;:     11.327 ms              ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   11.338 ms ± 50.542 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
 
-    ▅   █    ▅           ▂        ▂  ▅▂   ▂▂ ▅              ▂  
-  ▅██▅███▅▅█▅█▅▁▅▅█▁▁█▁▁▅█▅███▁▁███▅▁██▅█▅██▁██▅▅▁▅█▁▅▅▅▁▁▁▅█ ▁
-  11.3 ms         Histogram: frequency by time        11.4 ms &lt;
+                  ▁ ▆ ▆  ▃ ▃ ▁█ ▃ ▆      ▁▁ ▆▃▁                
+  ▄▁▁▁▁▁▁▁▁▁▁▁▁▁▄▇█▇█▇█▄▇█▇█▇██▄█▁█▁▄▇▄▄▁██▇███▄▁▁▇▁▄▄▄▁▁▁▄▁▄ ▁
+  11.2 ms         Histogram: frequency by time        11.5 ms &lt;
 
  Memory estimate: 3.77 KiB, allocs estimate: 77.
 </pre>
@@ -1329,6 +1331,60 @@ BenchmarkTools.Trial: 88 samples with 1 evaluation.
 
 <pre class="output">
 missing
+</pre>
+
+
+<h2>High-level GPU Programming with FLoops</h2>
+<p>In <a href="https://github.com/PsuAstro528/lab6-start">Lab 6</a>, we saw how we could write parallel for either serial, multithreaded or distributed architectures using <a href="https://juliafolds.github.io/FLoops.jl/dev/">FLoops.jl</a>.   The <a href="https://github.com/JuliaFolds/FoldsCUDA.jl">FoldsCUDA.jl</a> package provided an executor that allows FLoops to compile code for the GPU.  THe usual limitations about GPU kernels not being able to allocate memory still apply.  In order for the GPU kernel to be allowed to write to GPU arrays, we use the <code>referencable&#40;&#41;</code> function and an unusual syntax shown below.  </p>
+
+
+<pre class='hljl'>
+<span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>FLoops</span><span class='hljl-t'>
+</span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>CUDA</span><span class='hljl-p'>,</span><span class='hljl-t'> </span><span class='hljl-n'>FoldsCUDA</span><span class='hljl-t'>
+</span><span class='hljl-k'>using</span><span class='hljl-t'> </span><span class='hljl-n'>Referenceables</span><span class='hljl-oB'>:</span><span class='hljl-t'> </span><span class='hljl-n'>referenceable</span>
+</pre>
+
+
+
+
+<pre class='hljl'>
+<span class='hljl-k'>function</span><span class='hljl-t'> </span><span class='hljl-nf'>calc_rv_kepler_floops</span><span class='hljl-p'>(</span><span class='hljl-n'>output</span><span class='hljl-oB'>::</span><span class='hljl-n'>AbstractArray</span><span class='hljl-p'>,</span><span class='hljl-t'> </span><span class='hljl-n'>times</span><span class='hljl-oB'>::</span><span class='hljl-n'>AbstractArray</span><span class='hljl-p'>,</span><span class='hljl-t'> </span><span class='hljl-n'>param</span><span class='hljl-p'>;</span><span class='hljl-t'> </span><span class='hljl-n'>ex</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'>  </span><span class='hljl-nf'>ThreadedEx</span><span class='hljl-p'>()</span><span class='hljl-t'> </span><span class='hljl-p'>)</span><span class='hljl-t'>
+     </span><span class='hljl-nd'>@floop</span><span class='hljl-t'> </span><span class='hljl-n'>ex</span><span class='hljl-t'> </span><span class='hljl-k'>for</span><span class='hljl-t'> </span><span class='hljl-p'>(</span><span class='hljl-n'>t_i</span><span class='hljl-p'>,</span><span class='hljl-n'>rv_i</span><span class='hljl-p'>)</span><span class='hljl-t'> </span><span class='hljl-kp'>in</span><span class='hljl-t'> </span><span class='hljl-nf'>zip</span><span class='hljl-p'>(</span><span class='hljl-nf'>referenceable</span><span class='hljl-p'>(</span><span class='hljl-n'>times</span><span class='hljl-p'>),</span><span class='hljl-nf'>referenceable</span><span class='hljl-p'>(</span><span class='hljl-n'>output</span><span class='hljl-p'>))</span><span class='hljl-t'>
+        </span><span class='hljl-n'>rv_i</span><span class='hljl-p'>[]</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-nf'>calc_rv_kepler</span><span class='hljl-p'>(</span><span class='hljl-n'>t_i</span><span class='hljl-p'>[],</span><span class='hljl-n'>param</span><span class='hljl-oB'>=</span><span class='hljl-n'>param</span><span class='hljl-p'>)</span><span class='hljl-t'>
+    </span><span class='hljl-k'>end</span><span class='hljl-t'>
+    </span><span class='hljl-n'>output</span><span class='hljl-t'>
+</span><span class='hljl-k'>end</span>
+</pre>
+
+
+<pre class="output">
+calc_rv_kepler_floops &#40;generic function with 1 method&#41;
+</pre>
+
+
+
+<pre class='hljl'>
+<span class='hljl-n'>output_cpu_floops</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-nf'>similar</span><span class='hljl-p'>(</span><span class='hljl-n'>obs_data</span><span class='hljl-oB'>.</span><span class='hljl-n'>t</span><span class='hljl-p'>)</span><span class='hljl-t'>
+</span><span class='hljl-nf'>calc_rv_kepler_floops</span><span class='hljl-p'>(</span><span class='hljl-n'>output_cpu_floops</span><span class='hljl-p'>,</span><span class='hljl-n'>obs_data</span><span class='hljl-oB'>.</span><span class='hljl-n'>t</span><span class='hljl-p'>,</span><span class='hljl-n'>θ_true</span><span class='hljl-p'>)</span><span class='hljl-t'>
+</span><span class='hljl-nf'>all</span><span class='hljl-p'>(</span><span class='hljl-n'>output_cpu_floops</span><span class='hljl-t'> </span><span class='hljl-oB'>.≈</span><span class='hljl-t'> </span><span class='hljl-n'>output_cpu</span><span class='hljl-p'>)</span>
+</pre>
+
+
+<pre class="output">
+true
+</pre>
+
+
+
+<pre class='hljl'>
+<span class='hljl-n'>output_gpu_floops</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-n'>CUDA</span><span class='hljl-oB'>.</span><span class='hljl-nf'>similar</span><span class='hljl-p'>(</span><span class='hljl-n'>obs_times_d</span><span class='hljl-p'>)</span><span class='hljl-t'>
+</span><span class='hljl-nf'>calc_rv_kepler_floops</span><span class='hljl-p'>(</span><span class='hljl-n'>output_gpu_floops</span><span class='hljl-p'>,</span><span class='hljl-n'>obs_times_d</span><span class='hljl-p'>,</span><span class='hljl-n'>θ_true</span><span class='hljl-p'>,</span><span class='hljl-t'> </span><span class='hljl-n'>ex</span><span class='hljl-oB'>=</span><span class='hljl-nf'>CUDAEx</span><span class='hljl-p'>())</span><span class='hljl-t'>
+</span><span class='hljl-nf'>all</span><span class='hljl-p'>(</span><span class='hljl-nf'>collect</span><span class='hljl-p'>(</span><span class='hljl-n'>output_gpu_floops</span><span class='hljl-p'>)</span><span class='hljl-t'> </span><span class='hljl-oB'>.≈</span><span class='hljl-t'> </span><span class='hljl-n'>output_cpu</span><span class='hljl-p'>)</span>
+</pre>
+
+
+<pre class="output">
+true
 </pre>
 
 
@@ -1371,7 +1427,7 @@ calc_chisq_rv_kepler_cpu_simple &#40;generic function with 1 method&#41;
 
 
 <pre class="output">
-998764.0926329002
+998927.9689601054
 </pre>
 
 
@@ -1383,15 +1439,15 @@ calc_chisq_rv_kepler_cpu_simple &#40;generic function with 1 method&#41;
 
 <pre class="output">
 BenchmarkTools.Trial: 5 samples with 1 evaluation.
- Range &#40;min … max&#41;:  248.415 ms … 249.705 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+ Range &#40;min … max&#41;:  247.023 ms … 249.372 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
 0&#37;
- Time  &#40;median&#41;:     248.870 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   248.896 ms ± 503.541 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
+ Time  &#40;median&#41;:     248.984 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   248.685 ms ± 956.511 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
 0&#37;
 
-  █    █               █   █                                  █  
-  █▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
-  248 ms           Histogram: frequency by time          250 ms &lt;
+  █                                            █    █      █  █  
+  █▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁█▁▁▁▁▁▁█▁▁█ ▁
+  247 ms           Histogram: frequency by time          249 ms &lt;
 
  Memory estimate: 7.63 MiB, allocs estimate: 2.
 </pre>
@@ -1438,16 +1494,18 @@ true
 
 
 <pre class="output">
-BenchmarkTools.Trial: 14 samples with 1 evaluation.
- Range &#40;min … max&#41;:  69.418 ms … 76.363 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 4.10&#37;
- Time  &#40;median&#41;:     71.723 ms              ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   71.630 ms ±  2.122 ms  ┊ GC &#40;mean ± σ&#41;:  0.86&#37; ± 1.65&#37;
+BenchmarkTools.Trial: 5 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  247.786 ms … 250.033 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+0&#37;
+ Time  &#40;median&#41;:     248.584 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   248.758 ms ± 869.948 μs  ┊ GC &#40;mean ± σ&#41;:  0.22&#37; ± 0.4
+9&#37;
 
-  █ ▃                ▃   ▃                                     
-  █▁█▁▁▁▁▁▇▁▁▁▁▁▁▁▁▁▁█▁▁▁█▇▁▁▁▁▁▁▁▇▁▁▁▁▁▁▁▁▁▁▁▇▁▁▁▁▁▁▁▁▁▁▁▁▁▇ ▁
-  69.4 ms         Histogram: frequency by time        76.4 ms &lt;
+  █           █        █               █                      █  
+  █▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
+  248 ms           Histogram: frequency by time          250 ms &lt;
 
- Memory estimate: 15.26 MiB, allocs estimate: 70.
+ Memory estimate: 15.26 MiB, allocs estimate: 25.
 </pre>
 
 
@@ -1460,7 +1518,7 @@ BenchmarkTools.Trial: 14 samples with 1 evaluation.
 
 
 <pre class="output">
-4
+1
 </pre>
 
 
@@ -1554,15 +1612,15 @@ missing
 
 <pre class="output">
 BenchmarkTools.Trial: 351 samples with 1 evaluation.
- Range &#40;min … max&#41;:  2.808 ms …  11.719 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 35.67
+ Range &#40;min … max&#41;:  2.809 ms …  12.181 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 34.29
 &#37;
- Time  &#40;median&#41;:     2.821 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   2.849 ms ± 476.411 μs  ┊ GC &#40;mean ± σ&#41;:  0.42&#37; ±  1.90
+ Time  &#40;median&#41;:     2.817 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   2.847 ms ± 501.208 μs  ┊ GC &#40;mean ± σ&#41;:  0.42&#37; ±  1.83
 &#37;
 
-        ▂ ▆▅█▅▃▁▅▅                                             
-  ▂▃▄▄▆▄█▇████████▇█▆▆▅▃▃▂▃▂▂▃▂▁▁▁▂▂▁▁▁▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▂ ▃
-  2.81 ms         Histogram: frequency by time        2.87 ms &lt;
+      ▅▆▄▅▃▆█▄▅                                                
+  ▄▅▆▆██████████▆▇▄▇▄▄▂▂▂▁▁▁▁▁▁▃▂▁▁▁▃▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▂▁▁▁▁▁▁▁▂ ▃
+  2.81 ms         Histogram: frequency by time        2.86 ms &lt;
 
  Memory estimate: 12.17 KiB, allocs estimate: 224.
 </pre>
@@ -1604,19 +1662,19 @@ th 1 method&#41;
 
 
 <pre class="output">
-&#40;t &#61; &#91;0.00024695069370339883, 0.0003085425287251892, 0.00031294544819217117
-, 0.0008510648682641048, 0.0015112595294548288, 0.0026502562556718367, 0.00
-2723467055801972, 0.0027714579421047247, 0.0027790441048805184, 0.003542460
-5399168104  …  365.2397114137781, 365.239926414381, 365.2399972101972, 365.
-24073788190253, 365.2407970964841, 365.2412139903176, 365.2415370845327, 36
-5.24158700137923, 365.24203649642516, 365.24218029128843&#93;, rv &#61; &#91;6.20003726
-81813305, 5.194810996237091, 5.534122009586072, 5.386597284970308, 5.982042
-050619719, 5.59877725140872, 4.751211163940677, 5.600326725370883, 5.320661
-693092174, 2.486865818779124  …  -2.3784839875741923, -2.47113089088948, -1
-.0588158128808631, -1.2851756247022506, -2.1956200498765015, -1.60120892472
-3919, -2.0834605821807655, -0.32991810873179633, -1.7179778364988012, 1.131
-0113885419169&#93;, σ &#61; &#91;1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1
-.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0&#93;&#41;
+&#40;t &#61; &#91;0.0006615780995094617, 0.0016891302698989119, 0.0017087820586767816, 
+0.002676165254323725, 0.002887228671457348, 0.0029669544624311523, 0.003094
+01534105147, 0.003121726306660607, 0.0038401891494553005, 0.004040039317028
+986  …  365.2367124020378, 365.2370332708507, 365.2371013195779, 365.237409
+95566754, 365.23767626109003, 365.2400418560101, 365.2400501512042, 365.240
+4980440767, 365.24067743877373, 365.24201410350264&#93;, rv &#61; &#91;6.12791935041862
+, 3.5873709903783806, 5.952701222220714, 6.1290282950659405, 4.495691318489
+003, 5.636264077485268, 4.031787473398865, 4.316346447653494, 6.69758473289
+2491, 6.114334537371375  …  -1.1600297821785448, -0.6985672447525706, -0.93
+46039508722925, -0.11347709988808963, -2.030135961176502, -1.48250730136126
+, -0.7999358099847471, -1.4317594599339694, -0.9155199756395435, 0.76166732
+66920941&#93;, σ &#61; &#91;1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1.0, 1
+.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0&#93;&#41;
 </pre>
 
 
@@ -1640,16 +1698,16 @@ missing
 
 
 <pre class="output">
-BenchmarkTools.Trial: 1786 samples with 1 evaluation.
- Range &#40;min … max&#41;:  539.328 μs …  16.473 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 41.
-72&#37;
- Time  &#40;median&#41;:     544.093 μs               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   554.214 μs ± 376.931 μs  ┊ GC &#40;mean ± σ&#41;:  0.69&#37; ±  0.
-99&#37;
+BenchmarkTools.Trial: 1788 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  539.048 μs …  17.402 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 40.
+37&#37;
+ Time  &#40;median&#41;:     543.223 μs               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   553.800 μs ± 398.728 μs  ┊ GC &#40;mean ± σ&#41;:  0.71&#37; ±  0.
+95&#37;
 
-          ▁▄▇█▆▄▃▂                                               
-  ▂▂▂▃▃▄▆▇█████████▇▅▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▁▂▁▂▂▁▂▁▂▂▂▂▂▂▃▃▂▃▃▂▃▁▂▂▁▂▂ ▃
-  539 μs           Histogram: frequency by time          563 μs &lt;
+        ▁▃▅▆██▆▃▁                                                
+  ▂▃▃▄▅▇█████████▇▅▄▃▄▃▃▃▃▃▂▂▂▂▂▁▁▂▁▂▁▁▁▁▁▁▁▂▂▂▂▂▃▃▃▃▂▃▃▃▂▂▂▂▂▂ ▃
+  539 μs           Histogram: frequency by time          562 μs &lt;
 
  Memory estimate: 11.50 KiB, allocs estimate: 201.
 </pre>
@@ -1668,6 +1726,8 @@ missing
 </pre>
 
 
+<p>For examples of how to fuse parallel calculations and reductions into a single GPU kernel call using FLoops, see <a href="https://juliafolds.github.io/FoldsCUDA.jl/dev/examples/inplace_mutation_with_referenceables/#Fusing-reduction-and-mutationg">this example</a>.</p>
+
 <h2>Evaluating many models at once</h2>
 <p>In the previous examples, we got a good performance speed-up when we computed a million predicted velocities in one GPU call.  Most stars won&#39;t have nearly that many observations.  If we only had a few hundred observations and used the code above, we would not get nearly as good performance out of the CPU.  &#40;Feel free to try repeating the above benchmarks, changing n_obs.  Remember, you&#39;d need to rerun all the cells that are affected.&#41;  Is there a way that GPU computing might still be useful?  </p>
 <p>Typically, we don&#39;t just want to evalute one model, but rather need to evaluate thousand, millions or billions of models to find those that are a good match to the observations.  This creates a second opportunity for parallelization.  We can have each thread evaluate the predicted velocity for one observation time and one set of model parameters.  Let&#39;s try that.  </p>
@@ -1682,19 +1742,19 @@ missing
 
 
 <pre class="output">
-&#40;t &#61; &#91;5.0767773526398665, 5.995301469858713, 6.088408142181584, 7.325508050
-206867, 10.077661165037453, 19.388917239356466, 19.424989626648056, 21.3344
-39198358645, 25.701296275055196, 26.585893850862895  …  352.9511114155405, 
-355.31758519372033, 355.6843300202164, 356.0512853188645, 356.1804747678262
-4, 357.59994633618135, 357.80397861258393, 361.5569313193386, 362.162520458
-7458, 364.72467890778574&#93;, rv &#61; &#91;-1.0888977976299479, 3.7122739399024, 6.23
-1174885894552, -3.9966132775686867, -3.938995699840387, -2.9860763445401384
-, -4.3402423837075785, 5.721307949552906, -4.656048159991754, 2.43548092550
-85432  …  -4.209007599331793, -4.6240940013855685, -3.359783540332948, -2.6
-26270954881358, -1.2385903127518278, -1.7176304528672597, -1.71288753765835
-6, -0.609620726150419, 0.944839886981335, -3.3226190279114443&#93;, σ &#61; &#91;1.0, 1
-.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1.0, 1.0, 1.0, 1.0, 1.0, 1.0
-, 1.0, 1.0, 1.0, 1.0&#93;&#41;
+&#40;t &#61; &#91;0.9999778290102748, 2.2167649131772142, 3.7618450051271535, 4.2525849
+26569488, 5.012143291855628, 7.072099277637804, 8.909414338698374, 9.962480
+764838363, 10.214237197731636, 12.27872179581601  …  355.1189529299526, 356
+.3752634046166, 359.0099329798952, 360.24078211540325, 361.2025835524142, 3
+61.93208309065847, 362.549450179519, 364.52907120726206, 364.8271318906116,
+ 365.0847976066379&#93;, rv &#61; &#91;-3.6718142042022226, -1.965090058612215, -1.4272
+50280696528, -1.0117811148322131, -1.3789306313518668, -2.5649491479135316,
+ 4.618114180874573, -3.737447276530609, -5.312281428080849, 7.8102004881628
+58  …  -5.117664805671852, 0.5831527569195544, -1.180005331404875, 7.818389
+835948757, -2.8513282423878534, -2.066905121157047, 1.3588932527483135, -3.
+277914552070794, -3.445973673313784, -2.9806059745460756&#93;, σ &#61; &#91;1.0, 1.0, 1
+.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0  …  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+, 1.0, 1.0, 1.0&#93;&#41;
 </pre>
 
 
@@ -1702,7 +1762,7 @@ missing
 
 
 <pre class='hljl'>
-<span class='hljl-n'>num_models</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-ni'>8_192</span><span class='hljl-t'>
+<span class='hljl-n'>num_models</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-ni'>1024</span><span class='hljl-t'> </span><span class='hljl-cs'>#8_192</span><span class='hljl-t'>
 </span><span class='hljl-n'>σ_P</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-n'>P_true</span><span class='hljl-oB'>*</span><span class='hljl-nfB'>1e-4</span><span class='hljl-t'>
 </span><span class='hljl-n'>σ_K</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-n'>K_true</span><span class='hljl-oB'>*</span><span class='hljl-nfB'>1e-2</span><span class='hljl-t'>
 </span><span class='hljl-n'>σ_e</span><span class='hljl-t'> </span><span class='hljl-oB'>=</span><span class='hljl-t'> </span><span class='hljl-nfB'>0.1</span><span class='hljl-t'>
@@ -1811,7 +1871,7 @@ veSandBox#257.gpu_calc_rv_kepler_kernel_many_models&#41;
 
 
 <pre class="output">
-1.021405182655144e-14
+8.881784197001252e-15
 </pre>
 
 
@@ -1835,18 +1895,18 @@ missing
 
 
 <pre class="output">
-BenchmarkTools.Trial: 7 samples with 1 evaluation.
- Range &#40;min … max&#41;:  152.286 ms … 158.778 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
-0&#37;
- Time  &#40;median&#41;:     152.633 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   153.452 ms ±   2.353 ms  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
-0&#37;
+BenchmarkTools.Trial: 15 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  67.830 ms …  69.190 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00
+&#37;
+ Time  &#40;median&#41;:     68.010 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   68.241 ms ± 481.375 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00
+&#37;
 
-    ▃█                                                           
-  ▇▁██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▇ ▁
-  152 ms           Histogram: frequency by time          159 ms &lt;
+  █      ▃                  ▃                                ▃  
+  █▁▇▁▇▇▇█▁▁▁▁▁▁▁▁▁▇▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▇▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
+  67.8 ms         Histogram: frequency by time         69.2 ms &lt;
 
- Memory estimate: 4.25 KiB, allocs estimate: 67.
+ Memory estimate: 1.09 KiB, allocs estimate: 21.
 </pre>
 
 
@@ -1857,14 +1917,16 @@ BenchmarkTools.Trial: 7 samples with 1 evaluation.
 
 
 <pre class="output">
-BenchmarkTools.Trial: 620 samples with 1 evaluation.
- Range &#40;min … max&#41;:  1.508 ms …  1.710 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00&#37;
- Time  &#40;median&#41;:     1.601 ms              ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   1.596 ms ± 41.896 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00&#37;
+BenchmarkTools.Trial: 2897 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  250.286 μs … 499.969 μs  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.0
+0&#37;
+ Time  &#40;median&#41;:     335.256 μs               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   337.850 μs ±  24.543 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.0
+0&#37;
 
-            ▇▆                     ▂█▂                        
-  ▂▁▂▂▃▂▄▄▅▇██▇▇▇▃▄▄█▄▇▄▆▅█▆▇▇▆▇█▇▆████▅▇▄▇█▇▅▄▄▄▅▆▄▄▄▃▄▃▄▂▃ ▄
-  1.51 ms        Histogram: frequency by time        1.69 ms &lt;
+                             ▁▃▇▆▅ ▁▂█▃    ▁▁          ▁         
+  ▂▁▂▂▁▁▂▁▁▁▂▂▂▂▂▁▂▂▃▃▄▇█▆▅▆▅█████▆██████████▅▆▄▅▄▃▃▄▃▃██▄▄▂▃▃▃ ▄
+  250 μs           Histogram: frequency by time          397 μs &lt;
 
  Memory estimate: 4.42 KiB, allocs estimate: 82.
 </pre>
@@ -1945,7 +2007,7 @@ gpu_calc_chisq_kepler_many_models &#40;generic function with 3 methods&#41;
 
 
 <pre class="output">
-9.094947017729282e-12
+5.4569682106375694e-12
 </pre>
 
 
@@ -1955,10 +2017,19 @@ gpu_calc_chisq_kepler_many_models &#40;generic function with 3 methods&#41;
 </pre>
 
 
-<pre class="julia-error">
-ERROR: Out of GPU memory
-Effective GPU memory usage: 99.96&#37; &#40;11.908 GiB/11.912 GiB&#41;
-Memory pool usage: 58.343 MiB &#40;11.594 GiB reserved&#41;
+<pre class="output">
+BenchmarkTools.Trial: 4707 samples with 1 evaluation.
+ Range &#40;min … max&#41;:   59.042 μs … 87.297 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00
+&#37;
+ Time  &#40;median&#41;:     226.415 μs              ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   207.797 μs ±  1.272 ms  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00
+&#37;
+
+    ▄                                             ▁▅▇█▆▃        
+  ▃▆██▆▄▃▃▂▂▂▂▂▂▁▂▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▁▁▁▁▁▂▂▅██████▇▅▃▂▂▂ ▃
+  59 μs           Histogram: frequency by time          258 μs &lt;
+
+ Memory estimate: 10.38 KiB, allocs estimate: 162.
 </pre>
 
 
@@ -1969,18 +2040,18 @@ Memory pool usage: 58.343 MiB &#40;11.594 GiB reserved&#41;
 
 
 <pre class="output">
-BenchmarkTools.Trial: 7 samples with 1 evaluation.
- Range &#40;min … max&#41;:  156.858 ms … 163.284 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 1.8
-9&#37;
- Time  &#40;median&#41;:     159.929 ms               ┊ GC &#40;median&#41;:    0.00&#37;
- Time  &#40;mean ± σ&#41;:   159.525 ms ±   2.462 ms  ┊ GC &#40;mean ± σ&#41;:  0.28&#37; ± 0.7
-2&#37;
+BenchmarkTools.Trial: 15 samples with 1 evaluation.
+ Range &#40;min … max&#41;:  68.236 ms …  69.393 ms  ┊ GC &#40;min … max&#41;: 0.00&#37; … 0.00
+&#37;
+ Time  &#40;median&#41;:     69.184 ms               ┊ GC &#40;median&#41;:    0.00&#37;
+ Time  &#40;mean ± σ&#41;:   68.951 ms ± 468.252 μs  ┊ GC &#40;mean ± σ&#41;:  0.00&#37; ± 0.00
+&#37;
 
-  ▁▁      ▁                    █                 ▁            ▁  
-  ██▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁▁▁▁▁▁█ ▁
-  157 ms           Histogram: frequency by time          163 ms &lt;
+  ▃                                                █       ▃    
+  █▁▁▁▇▁▁▇▁▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▇▁▁█▁▇▁▁▁▇▁█▇▇ ▁
+  68.2 ms         Histogram: frequency by time         69.4 ms &lt;
 
- Memory estimate: 16.07 MiB, allocs estimate: 71.
+ Memory estimate: 2.01 MiB, allocs estimate: 24.
 </pre>
 
 
@@ -2034,7 +2105,7 @@ get_nth_as_namedtuple &#40;generic function with 1 method&#41;
 
 
 <pre class="output">
-0.748332005
+0.259777692
 </pre>
 
 
