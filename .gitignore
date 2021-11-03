@@ -21,4 +21,6 @@ index.html
 *backkup*.jl
 core*
 
+# File to track whether project has been instantiated
+Project_has_been_instantiated
 

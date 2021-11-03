@@ -31,8 +31,18 @@ export LD_LIBRARY_PATH=/gpfs/group/RISE/sw7/julia-1.6.0/julia-1.6.0/lib
 echo "About to change into $PBS_O_WORKDIR"
 cd $PBS_O_WORKDIR            # Change into directory where job was submitted from
 
+
+FILE=./Project_has_been_instantiated
+if [ -f "$FILE" ]; then
+    echo "# $FILE exists.  Assuming no need to instantiate project to install packages."
+else
+    echo "# $FILE does not exist. Will install relevant packages."
+    julia -e 'import Pkg; Pkg.instantiate() '
+    touch $FILE
+fi
+
 date
-echo "About to start Julia"
+echo "About to run notebook and export html with outputs."
 julia --project -e 'using Weave; weave("ex2.ipynb")'
 echo "Julia exited"
 date
