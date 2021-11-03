@@ -1,7 +1,7 @@
 # Astro 528, Fall 2021
 ## Lab 8, Exercise 2 Responces
 
-If maybe useful to record your responses in this file, if you run ex1.ipynb as batch job, rather than as an interactive notebook.
+If maybe useful to record your responses in this file, if you run ex2.ipynb as batch job, rather than as an interactive notebook.
 
 
 2a. How much faster was performing the computations on the GPU than on the CPU?
