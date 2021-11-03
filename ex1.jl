@@ -17,11 +17,13 @@ using BenchmarkTools, Statistics
 using LinearAlgebra
 
 # ╔═╡ 3e61f670-5113-40f8-b8f4-4982c663eb19
-using Plots
+begin
+   using Plots
+end
 
 # ╔═╡ fb4509a1-e1aa-45ed-96c9-0e6644a5eda1
 md"""
-# Astro 528, Lab 7, Exercise 1
+# Astro 528, Lab 8, Exercise 1
 ### GPU Computing I:  Getting Started & Linear Algebra
 """
 
@@ -355,17 +357,17 @@ end;
 
 # ╔═╡ eea95112-19e5-4371-a246-9941eab16cc2
 let
-	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft)
-	scatter!(plt, n_plot, cpu_mul_mat_vec_times_total, color=2, label="CPU (total)")
-	plot!(plt, n_plot, cpu_mul_mat_vec_times_total, color=2, label="CPU (total)")
-	scatter!(plt, n_plot, gpu_mul_mat_vec_64_total, color=1, label="GPU (64bit, total)")
-	plot!(plt, n_plot, gpu_mul_mat_vec_64_exec, color=1, label="GPU (64bit, execute)")
-	scatter!(plt, n_plot, gpu_mul_mat_vec_32_total, color=3, label="GPU (32bit, total)")
-	plot!(plt, n_plot, gpu_mul_mat_vec_32_exec, color=3, label="GPU (32bit, execute)")
-	xlabel!(plt, "N: Number of rows in matrix")
-	ylabel!(plt, "Wall time")
-	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m)-Vector (m) Multiply")
-	savefig("benchmarks_mul_mat_vec.png")
+	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft);
+	scatter!(plt, n_plot, cpu_mul_mat_vec_times_total, color=2, label="CPU (total)");
+	plot!(plt, n_plot, cpu_mul_mat_vec_times_total, color=2, label="CPU (total)");
+	scatter!(plt, n_plot, gpu_mul_mat_vec_64_total, color=1, label="GPU (64bit, total)");
+	plot!(plt, n_plot, gpu_mul_mat_vec_64_exec, color=1, label="GPU (64bit, execute)");
+	scatter!(plt, n_plot, gpu_mul_mat_vec_32_total, color=3, label="GPU (32bit, total)");
+	plot!(plt, n_plot, gpu_mul_mat_vec_32_exec, color=3, label="GPU (32bit, execute)");
+	xlabel!(plt, "N: Number of rows in matrix");
+	ylabel!(plt, "Wall time");
+	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m)-Vector (m) Multiply");
+	savefig("benchmarks_mul_mat_vec.png");
 	plt
 end
 
@@ -415,17 +417,17 @@ end;
 
 # ╔═╡ ea1c8c71-3e35-4fae-b8ed-70a099561090
 let
-	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft)
-	scatter!(plt, n_plot, cpu_mul_mat_mat_times_total, color=2, label="CPU (total)")
-	plot!(plt, n_plot, cpu_mul_mat_mat_times_total, color=2, label="CPU (total)")
-	scatter!(plt, n_plot, gpu_mul_mat_mat_64_total, color=1, label="GPU (64bit, total)")
-	plot!(plt, n_plot, gpu_mul_mat_mat_64_exec, color=1, label="GPU (64bit, execute)")
-	scatter!(plt, n_plot, gpu_mul_mat_mat_32_total, color=3, label="GPU (32bit, total)")
-	plot!(plt, n_plot, gpu_mul_mat_mat_32_exec, color=3, label="GPU (32bit, execute)")
-	xlabel!(plt, "N: Number of rows in first matrix")
-	ylabel!(plt, "Wall time")
-	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m)-Matrix (m×n) Multiply")
-	savefig("benchmarks_mul_mat_mat.png")
+	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft);
+	scatter!(plt, n_plot, cpu_mul_mat_mat_times_total, color=2, label="CPU (total)");
+	plot!(plt, n_plot, cpu_mul_mat_mat_times_total, color=2, label="CPU (total)");
+	scatter!(plt, n_plot, gpu_mul_mat_mat_64_total, color=1, label="GPU (64bit, total)");
+	plot!(plt, n_plot, gpu_mul_mat_mat_64_exec, color=1, label="GPU (64bit, execute)");
+	scatter!(plt, n_plot, gpu_mul_mat_mat_32_total, color=3, label="GPU (32bit, total)");
+	plot!(plt, n_plot, gpu_mul_mat_mat_32_exec, color=3, label="GPU (32bit, execute)");
+	xlabel!(plt, "N: Number of rows in first matrix");
+	ylabel!(plt, "Wall time");
+	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m)-Matrix (m×n) Multiply");
+	savefig("benchmarks_mul_mat_mat.png");
 	plt
 end
 
@@ -475,17 +477,17 @@ end;
 
 # ╔═╡ 2d3ae427-1418-48b7-aa29-754fecbd9283
 let
-	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft)
-	scatter!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)")
-	plot!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)")
-	scatter!(plt, n_plot, gpu_solve_64_total, color=1, label="GPU (64bit, total)")
-	plot!(plt, n_plot, gpu_solve_64_exec, color=1, label="GPU (64bit, execute)")
-	scatter!(plt, n_plot, gpu_solve_32_total, color=3, label="GPU (32bit, total)")
-	plot!(plt, n_plot, gpu_solve_32_exec, color=3, label="GPU (32bit, execute)")
-	xlabel!(plt, "N: Number of rows in matrix")
-	ylabel!(plt, "Wall time")
-	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m) Solve")
-	savefig("benchmarks_solve.png")
+	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft);
+	scatter!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)");
+	plot!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)");
+	scatter!(plt, n_plot, gpu_solve_64_total, color=1, label="GPU (64bit, total)");
+	plot!(plt, n_plot, gpu_solve_64_exec, color=1, label="GPU (64bit, execute)");
+	scatter!(plt, n_plot, gpu_solve_32_total, color=3, label="GPU (32bit, total)");
+	plot!(plt, n_plot, gpu_solve_32_exec, color=3, label="GPU (32bit, execute)");
+	xlabel!(plt, "N: Number of rows in matrix");
+	ylabel!(plt, "Wall time");
+	title!(plt,"CPU vs GPU Performance:\nMatrix (n×m) Solve");
+	savefig("benchmarks_solve.png");
 	plt
 end
 
