@@ -36,7 +36,7 @@ if [ -f "$FILE" ]; then
     echo "# $FILE exists.  Assuming no need to instantiate project to install packages."
 else 
     echo "# $FILE does not exist. Will install relevant packages."
-    julia -e 'import Pkg; Pkg.instantiate() '
+    julia --project -e 'import Pkg; Pkg.instantiate() '
     touch $FILE
 fi
 
