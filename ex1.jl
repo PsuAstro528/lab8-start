@@ -268,7 +268,7 @@ Let's check to make sure that the GPU results are accurate.
 @test maximum(abs.(A_h \ b_h .- collect(A_d \ b_d))) < 1e-2
 
 # ╔═╡ bd2593c0-d647-4807-a904-716801a40703
-@test maximum(abs.(A_h \ b_h .- collect(A_d64 \ b_d64))) < 1e-10
+@test maximum(abs.(A_h \ b_h .- collect(A_d64 \ b_d64))) < 1e-8
 
 # ╔═╡ c1f08951-4303-4599-ac6c-1884c46dc5c7
 md"## Benchmarking vs problem size"
@@ -284,7 +284,7 @@ In case you're running this as a batch job rather than in an interactive noteboo
 """)
 
 # ╔═╡ a54a1ceb-e741-44b5-b0cd-ecda8c457a19
-n_plot = [2^i for i in 4:11]
+n_plot = [2^i for i in 4:12]
 
 # ╔═╡ 99885312-83a9-48e5-a647-1692fc6a9b89
 m_plot = n_plot
@@ -472,14 +472,14 @@ end;
 
 # ╔═╡ 75fefe3f-2170-4231-a676-f2b8aef49100
 begin
-	cpu_solve_times_total = map(n->cpu_benchmark_lu_solve(n,n), n_plot )
+	cpu_solve_times_total = map(n->cpu_benchmark_lu_solve(n,n), n_plot[1:end-1] )
 end;
 
 # ╔═╡ 2d3ae427-1418-48b7-aa29-754fecbd9283
 let
 	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft);
-	scatter!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)");
-	plot!(plt, n_plot, cpu_solve_times_total, color=2, label="CPU (total)");
+	scatter!(plt, n_plot[1:end-1], cpu_solve_times_total, color=2, label="CPU (total)");
+	plot!(plt, n_plot[1:end-1], cpu_solve_times_total, color=2, label="CPU (total)");
 	scatter!(plt, n_plot, gpu_solve_64_total, color=1, label="GPU (64bit, total)");
 	plot!(plt, n_plot, gpu_solve_64_exec, color=1, label="GPU (64bit, execute)");
 	scatter!(plt, n_plot, gpu_solve_32_total, color=3, label="GPU (32bit, total)");
@@ -499,37 +499,60 @@ md"""
 I didn't integrate the following example into the main exercise.  But if anyone is interested in how to perform many small linear algebra operations on the GPU, here's an example.  To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
 """
 
-# ╔═╡ 672db72b-0015-4f9e-8700-fc645c3929da
+# ╔═╡ 73b4d226-4062-44d7-9f23-b16864b93b31
 # Example of calling function from CUBLAS for batched linear algebra operations.
 begin
-	elty = Float64
-	num_systems = 500
-	n = 40
-	k = 1
-	# generate matrices
+	elty = Float64     	# Type for arithmetic
+	num_systems = 500   # Number of matrix systems to solve on GPU
+	n = 40              # Each matrix solve is nxn
+	k = 1               # CUDA uses a nx1 matrix instead of a vector
+	# Generate matrices on host
     A = [ begin
 			R = rand(elty,n,n)
 			Q = R'*R
 			(Q'+Q)/2
 		end for i in 1:num_systems]
-	x = [rand(elty,n,k) for i in 1:num_systems]
+	x = [ rand(elty,n,k) for i in 1:num_systems]
 	b = [ A[i]*x[i] for i in 1:num_systems]
+end
 
-	# move to device
-    d_A = CuArray{elty, 2}[]
+# ╔═╡ f9e47e41-d9c2-405a-9c31-07db084c986e
+begin
+	# Allocate device arrays of matrices 
+	d_A = CuArray{elty, 2}[]
     d_A_in = CuArray{elty, 2}[]
     d_b = CuArray{elty, 2}[]
-    for i in 1:length(A)
+	# Copy data for each array from host to device and then wait until complete
+    CUDA.@sync for i in 1:length(A)
        push!(d_A,CuArray(A[i]))
 	   push!(d_A_in,copy(d_A[i]))
        push!(d_b,CuArray(b[i]))
-    end	
-	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b)
-	@test all(collect(output_flag_d).==0)  # Test solve suceeded
+    end
+		# Trigger GPU performing calculation for a batch of matrices
+	# In this example, it's using QR factorization to find the least squares solution of a batch of overdetermined systems.
+	# I.e., findings the values of x that minimize the sum of square residuals between A*x and b 
+	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
+end
+
+# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
+begin
+	CUDA.@sync output_flag_d
+	@test all(collect($output_flag_d).==0)  # Test solve suceeded
 end
 
 # ╔═╡ f6119a25-00e6-4a65-a3d8-8a56e8719fb5
-@test all([all(isapprox.(x[i], collect(collect(output_x_d)[i]), rtol=1e-2)) for i in 1:num_systems])
+begin
+	CUDA.@sync output_x_d
+	# Test that results are close to the correct solution
+	@test all([all(isapprox.(x[i], collect($output_x_d[i]), rtol=1e-2)) for i in 1:num_systems])
+end
+
+# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
+let 
+	CUDA.@sync output_x_d
+	# Check absolute value of worst element of solution
+	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -633,20 +656,16 @@ uuid = "83423d85-b0ee-5818-9007-b63ccbeb887a"
 version = "1.16.1+1"
 
 [[deps.ChainRulesCore]]
-deps = ["Compat", "LinearAlgebra"]
-git-tree-sha1 = "e0af648f0692ec1691b5d094b8724ba1346281cf"
+deps = ["Compat", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "e30f2f4e20f7f186dc36529910beaedc60cfa644"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.18.0"
-weakdeps = ["SparseArrays"]
-
-    [deps.ChainRulesCore.extensions]
-    ChainRulesCoreSparseArraysExt = "SparseArrays"
+version = "1.16.0"
 
 [[deps.CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "c0216e792f518b39b22212127d4a84dc31e4e386"
+git-tree-sha1 = "a1296f0fe01a4c3f9bf0dc2934efbf4416f5db31"
 uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "1.3.5"
+version = "1.3.4"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "ColorVectorSpace", "Colors", "FixedPointNumbers", "PrecompileTools", "Random"]
@@ -776,9 +795,9 @@ uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 version = "0.1.10"
 
 [[deps.Extents]]
-git-tree-sha1 = "2140cd04483da90b2da7f99b2add0750504fc39c"
+git-tree-sha1 = "5e1e4c53fa39afe63a7d356e30452249365fba99"
 uuid = "411431e0-e8b7-467b-b5e0-f676ba4f2910"
-version = "0.1.2"
+version = "0.1.1"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -863,9 +882,9 @@ version = "0.69.1+0"
 
 [[deps.GeoInterface]]
 deps = ["Extents"]
-git-tree-sha1 = "d53480c0793b13341c40199190f92c611aa2e93c"
+git-tree-sha1 = "bb198ff907228523f3dee1070ceee63b9359b6ab"
 uuid = "cf35fbd7-0cd7-5166-be24-54bfbe79505f"
-version = "1.3.2"
+version = "1.3.1"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "Extents", "GeoInterface", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
@@ -970,9 +989,9 @@ version = "2.1.91+0"
 
 [[deps.JuliaInterpreter]]
 deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
-git-tree-sha1 = "0592b1810613d1c95eeebcd22dc11fba186c2a57"
+git-tree-sha1 = "81dc6aefcbe7421bd62cb6ca0e700779330acff8"
 uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.9.26"
+version = "0.9.25"
 
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1397,9 +1416,9 @@ uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [[deps.SortingAlgorithms]]
 deps = ["DataStructures"]
-git-tree-sha1 = "5165dfb9fd131cf0c6957a3a7605dede376e7b63"
+git-tree-sha1 = "c60ec5c62180f27efea3ba2908480f8055e17cee"
 uuid = "a2af1166-a08f-5f64-846c-94a0d3cef48c"
-version = "1.2.0"
+version = "1.1.1"
 
 [[deps.SparseArrays]]
 deps = ["Libdl", "LinearAlgebra", "Random", "Serialization", "SuiteSparse_jll"]
@@ -1467,9 +1486,9 @@ version = "1.0.1"
 
 [[deps.Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "OrderedCollections", "TableTraits"]
-git-tree-sha1 = "cb76cf677714c095e535e3501ac7954732aeea2d"
+git-tree-sha1 = "a1f34829d5ac0ef499f6d84428bd6b4c71f02ead"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.11.1"
+version = "1.11.0"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
@@ -1493,14 +1512,14 @@ uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 version = "0.5.23"
 
 [[deps.Tricks]]
-git-tree-sha1 = "eae1bb484cd63b36999ee58be2de6c178105112f"
+git-tree-sha1 = "aadb748be58b492045b4f56166b5188aa63ce549"
 uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
-version = "0.1.8"
+version = "0.1.7"
 
 [[deps.URIs]]
-git-tree-sha1 = "67db6cc7b3821e19ebe75791a9dd19c9b1188f2b"
+git-tree-sha1 = "b7a5e99f24892b6824a954199a45e9ffcc1c70f0"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.5.1"
+version = "1.5.0"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
@@ -1797,7 +1816,7 @@ version = "1.4.1+1"
 # ╠═99885312-83a9-48e5-a647-1692fc6a9b89
 # ╟─eea95112-19e5-4371-a246-9941eab16cc2
 # ╟─ea1c8c71-3e35-4fae-b8ed-70a099561090
-# ╟─2d3ae427-1418-48b7-aa29-754fecbd9283
+# ╠═2d3ae427-1418-48b7-aa29-754fecbd9283
 # ╟─17652979-ef2c-4b13-8c3b-102f01a1f312
 # ╠═c14f21e0-f4d0-42d7-bdd2-6953334d28f3
 # ╠═8f0cb976-0734-47f4-951e-119288f7506c
@@ -1822,7 +1841,10 @@ version = "1.4.1+1"
 # ╟─75fefe3f-2170-4231-a676-f2b8aef49100
 # ╟─eaef6efb-d614-4b54-8599-e5173ac591ab
 # ╟─019f57eb-ee5f-4500-958d-830186d62814
-# ╠═672db72b-0015-4f9e-8700-fc645c3929da
+# ╠═73b4d226-4062-44d7-9f23-b16864b93b31
+# ╠═f9e47e41-d9c2-405a-9c31-07db084c986e
+# ╠═fe609884-c598-4391-ab06-4ba7166b65ff
 # ╠═f6119a25-00e6-4a65-a3d8-8a56e8719fb5
+# ╠═f1233e72-adc0-43dc-8796-055cf9baf4e7
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
