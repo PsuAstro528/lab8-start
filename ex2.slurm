@@ -1,10 +1,9 @@
 #!/bin/bash 
 ## Submit job to our class's allocation
-#SBATCH --partition=sla-prio
+##SBATCH --partition=sla-prio
+#SBATCH --partition=burst
+#SBATCH --qos=burst4x 
 #SBATCH --account=ebf11-fa23_p_gpu
-## Alternatively could comment out the two lines above (by adding a second # at the beginning of each line)
-# and uncomment the lines below (by removing one #) to use the "Open" allocation
-##SBATCH --partition=open 
 
 ## Time requested: 0 hours, 15 minutes, 0 seconds
 #SBATCH --time=0:15:00 
