@@ -1,4 +1,4 @@
-# Astro 528, Fall 2021
+# Astro 528, Fall 2023
 ## Lab 8, Exercise 2 Responces
 
 If maybe useful to record your responses in this file, if you run ex2.ipynb as batch job, rather than as an interactive notebook.
