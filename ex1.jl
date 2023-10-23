@@ -307,12 +307,6 @@ Instead of doing linear algebra on one big matrix to get a speedup, you could us
 # ╔═╡ bf17466e-b5a3-4180-acfb-362c5da55d70
 num_systems = 100
 
-# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
-let # Test CUBLAS reports that all solves suceeded
-	CUDA.@sync output_flag_d
-	@test all(collect(output_flag_d).==0)
-end
-
 # ╔═╡ 80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
 md"""
 To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
@@ -332,6 +326,12 @@ begin
 	d_A = copy_array_of_arrays_to_gpu(A)
 	d_b = copy_array_of_arrays_to_gpu(b)
 	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
+end
+
+# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
+let # Test CUBLAS reports that all solves suceeded
+	CUDA.@sync output_flag_d
+	@test all(collect(output_flag_d).==0)
 end
 
 # ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
