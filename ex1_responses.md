@@ -27,6 +27,14 @@ If maybe useful to record your responses in this file, if you only run ex1.jl as
 
 
 
-1g. Does your project involve a significant ammount of compute time going into linear algebra? If so, would it make sense to use  a GPU for the linear algebra in your project? Explain your reasoning.
+1g. How large a batch of 128x128 systems does the GPU need before it is faster than solving the same number and size systems on the CPU?  By what factor is the GPU faster (once you have a large enough number of systems)?
 
 
+1h.  Try reducing the size of the linear systems to 40x40.  Now, how large a batch of systems does the GPU need before it is faster than solving the same number and size systems on the CPU?  By what factor is the GPU faster (once you have a large enough number of systems)?
+
+
+1i.  Try reducing the size of the linear systems to 10x10.  Now, how does the GPU performance compare to the CPU performance?
+
+
+
+1h. Does your project involve a significant ammount of compute time going into linear algebra? If so, would it make sense to use  a GPU for the linear algebra in your project? Explain your reasoning.

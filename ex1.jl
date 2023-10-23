@@ -7,18 +7,12 @@ using InteractiveUtils
 # ╔═╡ 4be1d24b-1932-4b75-943e-8cc8caf24241
 using CUDA
 
-# ╔═╡ 8c46077d-3fb4-499f-bfd0-94faf806eed1
-using PlutoUI, PlutoTeachingTools, PlutoTest
-
-# ╔═╡ 701d55a4-6963-4988-a3bf-f76b2556b9e7
-using BenchmarkTools, Statistics
-
-# ╔═╡ 1c989a8d-436a-4023-a637-d4ba26b33620
-using LinearAlgebra
-
 # ╔═╡ 3e61f670-5113-40f8-b8f4-4982c663eb19
 begin
-   using Plots
+	using PlutoUI, PlutoTeachingTools, PlutoTest
+	using BenchmarkTools, Statistics
+	using LinearAlgebra
+    using Plots
 end
 
 # ╔═╡ fb4509a1-e1aa-45ed-96c9-0e6644a5eda1
@@ -58,33 +52,41 @@ md"If we wanted to check whether our current GPU has some specific capability, t
 [CUDA.capability(dev) for dev in CUDA.devices()]
 
 # ╔═╡ bb9ba9b8-cec6-40c6-850f-8c380b2bb8b9
-md"We can also query specific device attributes."
+md"We can also query specific device attributes.  For example:"
 
 # ╔═╡ 89428d6e-fe54-454c-a8cd-34c149575e58
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT)
+md"""
+This GPU has $(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT)) streaming multiprocessors.
+"""
 
 # ╔═╡ 2ef25884-dc3c-4c18-b5f0-daeaf68260b1
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)
+md"""
+This GPU can have a maximum of $(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK)) threads per block.
+"""
 
 # ╔═╡ f682634c-1161-49b3-ac90-edb8804de13d
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X), 
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y),
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z)
+md"""
+This CPU can launch kernels with a maximum size in the x, y and z dimensions of: $(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X)), 
+$(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y)), and
+$(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z)).
+"""
 
 # ╔═╡ fb1642c0-ecf7-45e0-86e7-e0190853e2bf
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_WARP_SIZE)
+md"""
+This GPU executes $(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_WARP_SIZE)) threads in each warp.
+"""
 
 # ╔═╡ d5c676b5-97d6-4e2c-8db5-ae3b583aa096
-CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_L2_CACHE_SIZE)
+md"""
+Size of this GPU's L2 cache is
+$(CUDA.attribute(first(devices()), CUDA.DEVICE_ATTRIBUTE_L2_CACHE_SIZE)/1024^2) MB
+"""
 
 # ╔═╡ 79a38f78-8e10-4b73-988c-0dbc7a398427
 md"Total GPU RAM (in GB): $((totalmem(first(devices())))/1024^3)"
 
 # ╔═╡ ac8d9001-69e3-45f7-80ae-6d7e00341c4d
 md"# Linear Algebra"
-
-# ╔═╡ 2b31f16e-48b1-4941-ba72-bbb0464c19cc
-
 
 # ╔═╡ 225154c3-c3f9-44ef-ab8a-ad00073ff181
 md"""
@@ -133,9 +135,6 @@ typeof(A_d), typeof(x_d), typeof(b_d)
 warning_box(md"""
 Note that the `cu` function decided to convert the data from `Float64` to `Float32`.  This can provide a non-trivial speed-up for GPU calculations, but also increases the risk that floating-point error may lead to unacceptablely inaccurate results.  
 We'll want to compare the accuracy of the calculations below.""")
-
-# ╔═╡ 8b486f0f-f633-4e49-8ef6-341644a306f2
-
 
 # ╔═╡ 2fec476d-0190-4394-92b9-b52fda23dd87
 md"""
@@ -287,29 +286,142 @@ In case you're running this as a batch job rather than in an interactive noteboo
 n_plot = [2^i for i in 4:12]
 
 # ╔═╡ 99885312-83a9-48e5-a647-1692fc6a9b89
-m_plot = n_plot
+m_plot = n_plot;
 
 # ╔═╡ 17652979-ef2c-4b13-8c3b-102f01a1f312
 md"""
 1f.  For what size linear algebra operations, does the runtime of the CPU and GPU become comparable?  
 """
 
-# ╔═╡ c14f21e0-f4d0-42d7-bdd2-6953334d28f3
-
-
 # ╔═╡ 8f0cb976-0734-47f4-951e-119288f7506c
 response_1f = missing # md"Insert your response either here or in ex1_responses.md"
 
+# ╔═╡ eaef6efb-d614-4b54-8599-e5173ac591ab
+md"### Batched linear algebra operations on GPU via CUBLas"
+
+# ╔═╡ 019f57eb-ee5f-4500-958d-830186d62814
+md"""
+Instead of doing linear algebra on one big matrix to get a speedup, you could use a GPU to perform many small matrix operations in paralle.  Below I demonstrate how to solve a batch of linear systems.  
+"""
+
+# ╔═╡ bf17466e-b5a3-4180-acfb-362c5da55d70
+num_systems = 100
+
+# ╔═╡ 80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
+md"""
+To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
+"""
+
+# ╔═╡ 71c06429-6aaa-486b-9a0e-a66c27c265cc
+md"""
+Now we'll plot benchmarks as a function of the number of systems to solve for a given matrix size.  (You can experiment making the matrices smaller, but if you try to make them much bigger, then you risk crashing the GPU and having to start over.)
+"""
+
+# ╔═╡ 185cdee9-84e7-443f-a6a3-7ae6369e956e
+n_batched_matrices = 128
+
+# ╔═╡ 15265935-4b90-4d6d-9540-c13c2e4bd6cb
+md"""
+1g. How large a batch of 128x128 systems does the GPU need before it is faster than solving the same number and size systems on the CPU?  By what factor is the GPU faster (once you have a large enough number of systems)?
+"""
+
+# ╔═╡ b49be498-951d-4806-b423-efe3680ad5bb
+response_1g =  missing # md"Insert your response either here or in ex1_responses.md"
+
+# ╔═╡ ca428e3b-c163-4434-a282-ce40c0b1d6e0
+md"""
+1h.  Try reducing the size of the linear systems to 40x40.  Now, how large a batch of systems does the GPU need before it is faster than solving the same number and size systems on the CPU?  By what factor is the GPU faster (once you have a large enough number of systems)?
+"""
+
+# ╔═╡ dc8c4f51-8de5-4a05-9534-6ffbbdf87c75
+response_1h =  missing # md"Insert your response either here or in ex1_responses.md"
+
+# ╔═╡ 75a077d2-5056-498a-9212-62f3725533da
+md"""
+1i.  Try reducing the size of the linear systems to 10x10.  Now, how does the GPU performance compare to the CPU performance?
+"""
+
+# ╔═╡ 9ffdb280-5958-477d-be02-1c5835f51711
+response_1i =  missing # md"Insert your response either here or in ex1_responses.md"
+
 # ╔═╡ e056c322-139e-4ab5-819d-cf804f48902c
 md"""
-1g. Does your project involve a significant ammount of time performing linear algebra? If so, are there a few very large matrix operations?  Are there many small matrix opertaions?  Would it make sense to use  a GPU for the linear algebra in your project? Explain your reasoning.  (Feel free to create your own benchmarks based on an operation more similar to what is needed for your project.)
+1j. Does your project involve a significant ammount of time performing linear algebra? If so, are there a few very large matrix operations?  Are there many small matrix opertaions?  Would it make sense to use  a GPU for the linear algebra in your project? Explain your reasoning.  (Feel free to create your own benchmarks based on an operation more similar to what is needed for your project.)
 """
 
 # ╔═╡ 56486b73-112d-46e1-91f8-0981e0a49df3
-response_1g =  missing # md"Insert your response either here or in ex1_responses.md"
+response_1j =  missing # md"Insert your response either here or in ex1_responses.md"
 
 # ╔═╡ 2722f671-9f2d-40ec-8a67-8032998a41bc
 md"# Helper Code"
+
+# ╔═╡ 73b4d226-4062-44d7-9f23-b16864b93b31
+"""
+`make_inputs_batched_Ax_eq_b(n, num_systems; elty)`
+
+Inputs:
+- `n`: Solve nxn matrices
+- `num_systems`: Number of systems to solve
+- `elty`: type of arrays to solve (Float64)
+Outputs:
+
+NamedTuple with arrays containing `num_systems` values for each of `A`, `x` and `b` where each `A x = b` 
+"""
+function make_inputs_batched_Ax_eq_b(n::Integer, num_systems::Integer; elty::Type = Float64)
+	k = 1               # CUDA uses a nx1 matrix instead of a vector	
+    A = [ begin
+			R = rand(elty,n,n)
+			Q = R'*R
+			(Q'+Q)/2
+		end for i in 1:num_systems]
+	x = [ rand(elty,n,k) for i in 1:num_systems]
+	b = [ A[i]*x[i] for i in 1:num_systems]
+	return (;A, x, b)
+end
+
+# ╔═╡ 8c727358-0695-43ae-96b2-ded282e0dedf
+"""
+`copy_array_of_arrays_to_gpu(A; force_sync)`
+
+Input:
+- `A`:  Array of 2-darrays of numbers, all stored on the host
+- `force_sync`: Synchronize before returning (false)
+Output:
+- CuArray of 2-d CuArrays of data, all stored on the GPU
+"""
+function copy_array_of_arrays_to_gpu(A::TArrayOuter; force_sync::Bool = false) where { TVal<:Number, TArrayInner<: AbstractArray{TVal}, TArrayOuter<: AbstractArray{TArrayInner,1} }
+	elty = TVal
+	# Allocate device arrays of matrices 
+	d_A = CuArray{elty, 2}[]
+    # Move each array to GPU
+	for i in 1:length(A)
+       push!(d_A,CuArray(A[i]))
+	end
+	if force_sync
+		CUDA.@sync d_A
+	end
+	return d_A
+end
+
+# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
+begin
+	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
+	d_A = copy_array_of_arrays_to_gpu(A)
+	d_b = copy_array_of_arrays_to_gpu(b)
+	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
+end
+
+# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
+let # Test CUBLAS reports that all solves suceeded
+	CUDA.@sync output_flag_d
+	@test all(collect(output_flag_d).==0)
+end
+
+# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
+let # Check absolute value of worst element of all solutions
+	CUDA.@sync output_x_d
+	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
+end
 
 # ╔═╡ c1d3f9f3-269f-43b4-9336-b376b7e98361
 function cpu_benchmark_mul_mat_vec(n,m)
@@ -491,96 +603,6 @@ let
 	plt
 end
 
-# ╔═╡ eaef6efb-d614-4b54-8599-e5173ac591ab
-md"### Example of batched linear algebra operations on GPU"
-
-# ╔═╡ 019f57eb-ee5f-4500-958d-830186d62814
-md"""
-I didn't integrate the following example into the main exercise.  But if anyone is interested in how to perform many small linear algebra operations on the GPU, here's an example.  To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
-"""
-
-# ╔═╡ 80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
-md"""
-### Batched Linear Algebra Operations via CUBLAS 
-"""
-
-# ╔═╡ bf17466e-b5a3-4180-acfb-362c5da55d70
-num_systems = 500
-
-# ╔═╡ 185cdee9-84e7-443f-a6a3-7ae6369e956e
-n_batched_matrices = 128
-
-# ╔═╡ 73b4d226-4062-44d7-9f23-b16864b93b31
-"""
-`make_inputs_batched_Ax_eq_b(n, num_systems; elty)`
-
-Inputs:
-- `n`: Solve nxn matrices
-- `num_systems`: Number of systems to solve
-- `elty`: type of arrays to solve (Float64)
-Outputs:
-
-NamedTuple with arrays containing `num_systems` values for each of `A`, `x` and `b` where each `A x = b` 
-"""
-function make_inputs_batched_Ax_eq_b(n::Integer, num_systems::Integer; elty::Type = Float64)
-	k = 1               # CUDA uses a nx1 matrix instead of a vector	
-    A = [ begin
-			R = rand(elty,n,n)
-			Q = R'*R
-			(Q'+Q)/2
-		end for i in 1:num_systems]
-	x = [ rand(elty,n,k) for i in 1:num_systems]
-	b = [ A[i]*x[i] for i in 1:num_systems]
-	return (;A, x, b)
-end
-
-# ╔═╡ 8c727358-0695-43ae-96b2-ded282e0dedf
-"""
-`copy_array_of_arrays_to_gpu(A; force_sync)`
-
-Input:
-- `A`:  Array of 2-darrays of numbers, all stored on the host
-- `force_sync`: Synchronize before returning (false)
-Output:
-- CuArray of 2-d CuArrays of data, all stored on the GPU
-"""
-function copy_array_of_arrays_to_gpu(A::TArrayOuter; force_sync::Bool = false) where { TVal<:Number, TArrayInner<: AbstractArray{TVal}, TArrayOuter<: AbstractArray{TArrayInner,1} }
-	elty = TVal
-	# Allocate device arrays of matrices 
-	d_A = CuArray{elty, 2}[]
-    # Move each array to GPU
-	for i in 1:length(A)
-       push!(d_A,CuArray(A[i]))
-	end
-	if force_sync
-		CUDA.@sync d_A
-	end
-	return d_A
-end
-
-# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
-begin
-	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
-	d_A = copy_array_of_arrays_to_gpu(A)
-	d_b = copy_array_of_arrays_to_gpu(b)
-	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
-end
-
-# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
-# Test solve suceeded
-CUDA.@sync output_flag_d; @test all(collect($output_flag_d).==0)
-
-# ╔═╡ f6119a25-00e6-4a65-a3d8-8a56e8719fb5
-# Test that results are close to the correct solution
-CUDA.@sync output_x_d;  @test all([all(isapprox.(x[i], collect($output_x_d[i]), rtol=1e-2)) for i in 1:num_systems])
-
-# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
-let 
-	CUDA.@sync output_x_d
-	# Check absolute value of worst element of solution
-	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
-end
-
 # ╔═╡ 370b5a64-9fcb-4431-99c1-d0dee3f64932
 function gpu_benchmark_batch_solve(n_matrix::Integer, num_systems::Integer;
 										elty::Type = Float64)
@@ -653,12 +675,12 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-BenchmarkTools = "~1.2.0"
+BenchmarkTools = "~1.3.2"
 CUDA = "~3.5.0"
 Plots = "~1.22.6"
-PlutoTeachingTools = "~0.1.4"
-PlutoTest = "~0.1.2"
-PlutoUI = "~0.7.16"
+PlutoTeachingTools = "~0.2.13"
+PlutoTest = "~0.2.2"
+PlutoUI = "~0.7.52"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -667,7 +689,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.2"
 manifest_format = "2.0"
-project_hash = "4da966efaf9c95204e7b0599073cb379c44465e5"
+project_hash = "06ea7489860cf846a67337e83d56778caa52bc8e"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -714,9 +736,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[deps.BenchmarkTools]]
 deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
-git-tree-sha1 = "940001114a0147b6e4d10624276d56d531dd9b49"
+git-tree-sha1 = "d9a9701b899b30332bbcb3e1679c41cce81fb0e8"
 uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "1.2.2"
+version = "1.3.2"
 
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -749,9 +771,9 @@ version = "1.16.0"
 
 [[deps.CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
-git-tree-sha1 = "a1296f0fe01a4c3f9bf0dc2934efbf4416f5db31"
+git-tree-sha1 = "c0216e792f518b39b22212127d4a84dc31e4e386"
 uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
-version = "1.3.4"
+version = "1.3.5"
 
 [[deps.ColorSchemes]]
 deps = ["ColorTypes", "ColorVectorSpace", "Colors", "FixedPointNumbers", "PrecompileTools", "Random"]
@@ -1075,9 +1097,9 @@ version = "2.1.91+0"
 
 [[deps.JuliaInterpreter]]
 deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
-git-tree-sha1 = "81dc6aefcbe7421bd62cb6ca0e700779330acff8"
+git-tree-sha1 = "0592b1810613d1c95eeebcd22dc11fba186c2a57"
 uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
-version = "0.9.25"
+version = "0.9.26"
 
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1387,15 +1409,15 @@ version = "0.1.6"
 
 [[deps.PlutoTeachingTools]]
 deps = ["Downloads", "HypertextLiteral", "LaTeXStrings", "Latexify", "Markdown", "PlutoLinks", "PlutoUI", "Random"]
-git-tree-sha1 = "67c917d383c783aeadd25babad6625b834294b30"
+git-tree-sha1 = "542de5acb35585afcf202a6d3361b430bc1c3fbd"
 uuid = "661c6b06-c737-4d37-b85c-46df65de6f69"
-version = "0.1.7"
+version = "0.2.13"
 
 [[deps.PlutoTest]]
 deps = ["HypertextLiteral", "InteractiveUtils", "Markdown", "Test"]
-git-tree-sha1 = "b7da10d62c1ffebd37d4af8d93ee0003e9248452"
+git-tree-sha1 = "17aa9b81106e661cffa1c4c36c17ee1c50a86eda"
 uuid = "cb4044da-4d16-4ffa-a6a3-8cad7f73ebdc"
-version = "0.1.2"
+version = "0.2.2"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
@@ -1598,9 +1620,9 @@ uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 version = "0.5.23"
 
 [[deps.Tricks]]
-git-tree-sha1 = "aadb748be58b492045b4f56166b5188aa63ce549"
+git-tree-sha1 = "eae1bb484cd63b36999ee58be2de6c178105112f"
 uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
-version = "0.1.7"
+version = "0.1.8"
 
 [[deps.URIs]]
 git-tree-sha1 = "b7a5e99f24892b6824a954199a45e9ffcc1c70f0"
@@ -1849,13 +1871,12 @@ version = "1.4.1+1"
 # ╠═7260f7cb-37be-468a-a48a-2762049acb64
 # ╟─bb9ba9b8-cec6-40c6-850f-8c380b2bb8b9
 # ╠═89428d6e-fe54-454c-a8cd-34c149575e58
-# ╠═2ef25884-dc3c-4c18-b5f0-daeaf68260b1
-# ╠═f682634c-1161-49b3-ac90-edb8804de13d
-# ╠═fb1642c0-ecf7-45e0-86e7-e0190853e2bf
-# ╠═d5c676b5-97d6-4e2c-8db5-ae3b583aa096
-# ╠═79a38f78-8e10-4b73-988c-0dbc7a398427
+# ╟─2ef25884-dc3c-4c18-b5f0-daeaf68260b1
+# ╟─f682634c-1161-49b3-ac90-edb8804de13d
+# ╟─fb1642c0-ecf7-45e0-86e7-e0190853e2bf
+# ╟─d5c676b5-97d6-4e2c-8db5-ae3b583aa096
+# ╟─79a38f78-8e10-4b73-988c-0dbc7a398427
 # ╟─ac8d9001-69e3-45f7-80ae-6d7e00341c4d
-# ╠═2b31f16e-48b1-4941-ba72-bbb0464c19cc
 # ╟─225154c3-c3f9-44ef-ab8a-ad00073ff181
 # ╟─6cb46d4d-6e3b-4bb7-b1b5-e82e7294427f
 # ╠═c739f53b-c7c8-4b49-9ae4-cf8edc246c25
@@ -1865,7 +1886,6 @@ version = "1.4.1+1"
 # ╟─81056fe9-34e4-4f1f-850a-2b10df79cd4a
 # ╠═f82bbb2d-71d3-43af-a949-3fb9b38ee0cd
 # ╟─10925beb-c6b1-47e1-9003-279fadc465a0
-# ╠═8b486f0f-f633-4e49-8ef6-341644a306f2
 # ╟─2fec476d-0190-4394-92b9-b52fda23dd87
 # ╠═bf804c53-9895-431c-a1be-60e21b7f9595
 # ╠═b40e67e0-0b14-45b1-87c1-1a94a536b84d
@@ -1902,41 +1922,43 @@ version = "1.4.1+1"
 # ╠═99885312-83a9-48e5-a647-1692fc6a9b89
 # ╟─eea95112-19e5-4371-a246-9941eab16cc2
 # ╟─ea1c8c71-3e35-4fae-b8ed-70a099561090
-# ╠═2d3ae427-1418-48b7-aa29-754fecbd9283
+# ╟─2d3ae427-1418-48b7-aa29-754fecbd9283
 # ╟─17652979-ef2c-4b13-8c3b-102f01a1f312
-# ╠═c14f21e0-f4d0-42d7-bdd2-6953334d28f3
 # ╠═8f0cb976-0734-47f4-951e-119288f7506c
+# ╟─eaef6efb-d614-4b54-8599-e5173ac591ab
+# ╟─019f57eb-ee5f-4500-958d-830186d62814
+# ╠═bf17466e-b5a3-4180-acfb-362c5da55d70
+# ╠═1a5e09f6-0b83-4e13-af89-4364e219ff16
+# ╠═fe609884-c598-4391-ab06-4ba7166b65ff
+# ╠═f1233e72-adc0-43dc-8796-055cf9baf4e7
+# ╟─80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
+# ╟─71c06429-6aaa-486b-9a0e-a66c27c265cc
+# ╠═185cdee9-84e7-443f-a6a3-7ae6369e956e
+# ╟─ff118324-f687-44d6-aca9-dc84802767e2
+# ╟─15265935-4b90-4d6d-9540-c13c2e4bd6cb
+# ╠═b49be498-951d-4806-b423-efe3680ad5bb
+# ╟─ca428e3b-c163-4434-a282-ce40c0b1d6e0
+# ╠═dc8c4f51-8de5-4a05-9534-6ffbbdf87c75
+# ╟─75a077d2-5056-498a-9212-62f3725533da
+# ╠═9ffdb280-5958-477d-be02-1c5835f51711
 # ╟─e056c322-139e-4ab5-819d-cf804f48902c
 # ╠═56486b73-112d-46e1-91f8-0981e0a49df3
 # ╟─2722f671-9f2d-40ec-8a67-8032998a41bc
-# ╠═8c46077d-3fb4-499f-bfd0-94faf806eed1
-# ╠═701d55a4-6963-4988-a3bf-f76b2556b9e7
-# ╠═1c989a8d-436a-4023-a637-d4ba26b33620
 # ╠═3e61f670-5113-40f8-b8f4-4982c663eb19
+# ╟─73b4d226-4062-44d7-9f23-b16864b93b31
+# ╟─8c727358-0695-43ae-96b2-ded282e0dedf
 # ╟─c1d3f9f3-269f-43b4-9336-b376b7e98361
 # ╟─a4624650-de76-4a91-b261-6d73525eb2eb
 # ╟─f6411722-faaa-463f-af5a-fd0e820a196c
 # ╟─99262deb-6206-498f-bb94-a779578ffeab
-# ╠═1939ed6c-1238-4147-ae90-caae629452ce
-# ╠═ce31372c-4686-4896-bb76-f273777bf758
+# ╟─1939ed6c-1238-4147-ae90-caae629452ce
+# ╟─ce31372c-4686-4896-bb76-f273777bf758
 # ╟─ffa851f2-a234-4ee1-85ee-4c611e7c1385
 # ╟─16016799-3ac3-471c-add6-1f38e0fe9749
-# ╠═941d5524-11ac-436e-8526-563ef2ad28b6
+# ╟─941d5524-11ac-436e-8526-563ef2ad28b6
 # ╟─cd3d134c-8175-443b-8fdd-02dbca473159
 # ╟─b2767029-86b5-4b62-b1fb-a0c27c7e118d
 # ╟─75fefe3f-2170-4231-a676-f2b8aef49100
-# ╟─eaef6efb-d614-4b54-8599-e5173ac591ab
-# ╟─019f57eb-ee5f-4500-958d-830186d62814
-# ╟─80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
-# ╠═bf17466e-b5a3-4180-acfb-362c5da55d70
-# ╠═1a5e09f6-0b83-4e13-af89-4364e219ff16
-# ╠═fe609884-c598-4391-ab06-4ba7166b65ff
-# ╠═f6119a25-00e6-4a65-a3d8-8a56e8719fb5
-# ╠═f1233e72-adc0-43dc-8796-055cf9baf4e7
-# ╠═185cdee9-84e7-443f-a6a3-7ae6369e956e
-# ╟─ff118324-f687-44d6-aca9-dc84802767e2
-# ╟─73b4d226-4062-44d7-9f23-b16864b93b31
-# ╟─8c727358-0695-43ae-96b2-ded282e0dedf
 # ╟─370b5a64-9fcb-4431-99c1-d0dee3f64932
 # ╟─21c26eca-5896-4a67-801a-86a228edc2c5
 # ╟─a20538f8-1edb-44dc-bee9-989dc6926ee9
