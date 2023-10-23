@@ -8,10 +8,11 @@
 ## Time requested: 0 hours, 15 minutes, 0 seconds
 #SBATCH --time=0:15:00 
 
-## Ask for multiple CPU cores on one node
+## Ask for one core of one node, plus 1 CPU
 #SBATCH --nodes=1 
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1 
+#SBATCH --gpus=1
 
 ## Promise that each processor will use no more than 1GB of RAM
 #SBATCH --mem-per-cpu=8GB
@@ -44,8 +45,20 @@ cd $SLURM_SUBMIT_DIR            # Change into directory where job was submitted 
 
 # env |grep SLURM               # Uncomment if you want to see all the environment variables set
 
+FILE=./Project_has_been_instantiated
+if [ -f "$FILE" ]; then
+    echo "# $FILE exists.  Assuming no need to instantiate project to install packages."
+else 
+    echo "# $FILE does not exist. Will install relevant packages."
+    julia --project -e 'import Pkg; Pkg.instantiate() '
+    julia --project -e 'import Pluto, Pkg; Pluto.activate_notebook_environment("ex1.jl"); Pkg.instantiate() '
+    touch $FILE
+fi
+
 date
-echo "About to start Julia, using $SLURM_TASKS_PER_NODE CPU cores on one node"
-julia -t $SLURM_TASKS_PER_NODE -e 'using Pkg, Pluto; Pluto.activate_notebook_environment("ex1.jl"); Pluto.instantiate(); include("ex1.jl")'  
+echo "# About to run Pluto notebook and generate HTML version with outputs, using $SLURM_TASKS_PER_NODE CPU cores on one node"
+julia --project -t $SLURM_TASKS_PER_NODE -e 'import PlutoSliderServer; PlutoSliderServer.export_notebook("ex1.jl")'
+# To just run without saving HTML version
+#julia -t $SLURM_TASKS_PER_NODE -e 'using Pkg, Pluto; Pluto.activate_notebook_environment("ex1.jl"); Pkg.instantiate(); include("ex1.jl")'  
 echo "Julia exited"
 date
