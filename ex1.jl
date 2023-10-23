@@ -499,14 +499,31 @@ md"""
 I didn't integrate the following example into the main exercise.  But if anyone is interested in how to perform many small linear algebra operations on the GPU, here's an example.  To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
 """
 
+# ╔═╡ 80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
+md"""
+### Batched Linear Algebra Operations via CUBLAS 
+"""
+
+# ╔═╡ bf17466e-b5a3-4180-acfb-362c5da55d70
+num_systems = 500
+
+# ╔═╡ 185cdee9-84e7-443f-a6a3-7ae6369e956e
+n_batched_matrices = 128
+
 # ╔═╡ 73b4d226-4062-44d7-9f23-b16864b93b31
-# Example of calling function from CUBLAS for batched linear algebra operations.
-begin
-	elty = Float64     	# Type for arithmetic
-	num_systems = 500   # Number of matrix systems to solve on GPU
-	n = 40              # Each matrix solve is nxn
-	k = 1               # CUDA uses a nx1 matrix instead of a vector
-	# Generate matrices on host
+"""
+`make_inputs_batched_Ax_eq_b(n, num_systems; elty)`
+
+Inputs:
+- `n`: Solve nxn matrices
+- `num_systems`: Number of systems to solve
+- `elty`: type of arrays to solve (Float64)
+Outputs:
+
+NamedTuple with arrays containing `num_systems` values for each of `A`, `x` and `b` where each `A x = b` 
+"""
+function make_inputs_batched_Ax_eq_b(n::Integer, num_systems::Integer; elty::Type = Float64)
+	k = 1               # CUDA uses a nx1 matrix instead of a vector	
     A = [ begin
 			R = rand(elty,n,n)
 			Q = R'*R
@@ -514,44 +531,113 @@ begin
 		end for i in 1:num_systems]
 	x = [ rand(elty,n,k) for i in 1:num_systems]
 	b = [ A[i]*x[i] for i in 1:num_systems]
+	return (;A, x, b)
 end
 
-# ╔═╡ f9e47e41-d9c2-405a-9c31-07db084c986e
-begin
+# ╔═╡ 8c727358-0695-43ae-96b2-ded282e0dedf
+"""
+`copy_array_of_arrays_to_gpu(A; force_sync)`
+
+Input:
+- `A`:  Array of 2-darrays of numbers, all stored on the host
+- `force_sync`: Synchronize before returning (false)
+Output:
+- CuArray of 2-d CuArrays of data, all stored on the GPU
+"""
+function copy_array_of_arrays_to_gpu(A::TArrayOuter; force_sync::Bool = false) where { TVal<:Number, TArrayInner<: AbstractArray{TVal}, TArrayOuter<: AbstractArray{TArrayInner,1} }
+	elty = TVal
 	# Allocate device arrays of matrices 
 	d_A = CuArray{elty, 2}[]
-    d_A_in = CuArray{elty, 2}[]
-    d_b = CuArray{elty, 2}[]
-	# Copy data for each array from host to device and then wait until complete
-    CUDA.@sync for i in 1:length(A)
+    # Move each array to GPU
+	for i in 1:length(A)
        push!(d_A,CuArray(A[i]))
-	   push!(d_A_in,copy(d_A[i]))
-       push!(d_b,CuArray(b[i]))
-    end
-		# Trigger GPU performing calculation for a batch of matrices
-	# In this example, it's using QR factorization to find the least squares solution of a batch of overdetermined systems.
-	# I.e., findings the values of x that minimize the sum of square residuals between A*x and b 
+	end
+	if force_sync
+		CUDA.@sync d_A
+	end
+	return d_A
+end
+
+# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
+begin
+	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
+	d_A = copy_array_of_arrays_to_gpu(A)
+	d_b = copy_array_of_arrays_to_gpu(b)
 	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
 end
 
 # ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
-begin
-	CUDA.@sync output_flag_d
-	@test all(collect($output_flag_d).==0)  # Test solve suceeded
-end
+# Test solve suceeded
+CUDA.@sync output_flag_d; @test all(collect($output_flag_d).==0)
 
 # ╔═╡ f6119a25-00e6-4a65-a3d8-8a56e8719fb5
-begin
-	CUDA.@sync output_x_d
-	# Test that results are close to the correct solution
-	@test all([all(isapprox.(x[i], collect($output_x_d[i]), rtol=1e-2)) for i in 1:num_systems])
-end
+# Test that results are close to the correct solution
+CUDA.@sync output_x_d;  @test all([all(isapprox.(x[i], collect($output_x_d[i]), rtol=1e-2)) for i in 1:num_systems])
 
 # ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
 let 
 	CUDA.@sync output_x_d
 	# Check absolute value of worst element of solution
 	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
+end
+
+# ╔═╡ 370b5a64-9fcb-4431-99c1-d0dee3f64932
+function gpu_benchmark_batch_solve(n_matrix::Integer, num_systems::Integer;
+										elty::Type = Float64)
+	A, x, b = make_inputs_batched_Ax_eq_b(n_matrix,num_systems; elty)
+	time_init = @elapsed CUDA.@sync begin
+		d_A = copy_array_of_arrays_to_gpu(A)
+		d_b = copy_array_of_arrays_to_gpu(b)
+	end 
+	time_execute = @elapsed CUDA.@sync begin 
+		output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b)
+	end
+	time_download =  @elapsed ( CUDA.@sync output_x = collect(output_x_d) )
+	time_total = time_init + time_execute + time_download
+	return (;output_x, time_total, time_init, time_execute, time_download)
+end
+
+# ╔═╡ 21c26eca-5896-4a67-801a-86a228edc2c5
+function cpu_benchmark_batch_solve(n_matrix::Integer, num_systems::Integer;
+										elty::Type = Float64)
+	A, x, b = make_inputs_batched_Ax_eq_b(n_matrix,num_systems; elty)
+	local output_x 
+	time = @elapsed begin
+		output_x = fill(elty[],num_systems)
+		for i in 1:length(A)
+			output_x[i] = A[i] \ view(b[i],:,1)
+ 		end
+	end
+	return time
+end
+
+# ╔═╡ a20538f8-1edb-44dc-bee9-989dc6926ee9
+begin
+	gpu_solve_batch_64_results = map(nsys->gpu_benchmark_batch_solve(n_batched_matrices,nsys, elty=Float64), n_plot)
+	gpu_solve_batch_64_total = map(x->x.time_total,gpu_solve_batch_64_results)
+	gpu_solve_batch_64_exec = map(x->x.time_execute,gpu_solve_batch_64_results)
+	gpu_solve_batch_32_results = map(nsys->gpu_benchmark_batch_solve(n_batched_matrices,nsys, elty=Float32), n_plot)
+	gpu_solve_batch_32_total = map(x->x.time_total,gpu_solve_batch_32_results)
+	gpu_solve_batch_32_exec = map(x->x.time_execute,gpu_solve_batch_32_results)
+end;
+
+# ╔═╡ 7d5c48ff-5806-4bb2-acdd-98a508627bac
+cpu_solve_batch_total = map(nsys->cpu_benchmark_batch_solve(n_batched_matrices,nsys, elty=Float64), n_plot);
+
+# ╔═╡ ff118324-f687-44d6-aca9-dc84802767e2
+let
+	plt = plot(xscale=:log10, yscale=:log10, legend=:topleft);
+	scatter!(plt, n_plot, cpu_solve_batch_total, color=2, label="CPU (total)");
+	plot!(plt, n_plot, cpu_solve_batch_total, color=2, label="CPU (total)");
+	scatter!(plt, n_plot, gpu_solve_batch_64_total, color=1, label="GPU (64bit, total)");
+	plot!(plt, n_plot, gpu_solve_batch_64_exec, color=1, label="GPU (64bit, execute)");
+	scatter!(plt, n_plot, gpu_solve_batch_32_total, color=3, label="GPU (32bit, total)");
+	plot!(plt, n_plot, gpu_solve_batch_32_exec, color=3, label="GPU (32bit, execute)");
+	xlabel!(plt, "N: Number of systems to solve");
+	ylabel!(plt, "Wall time");
+	title!(plt,"CPU vs GPU Performance:\nBatch of Matrix ($n_batched_matrices×$n_batched_matrices) Solves");
+	savefig("benchmarks_batch_solve.png");
+	plt
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1831,20 +1917,29 @@ version = "1.4.1+1"
 # ╟─a4624650-de76-4a91-b261-6d73525eb2eb
 # ╟─f6411722-faaa-463f-af5a-fd0e820a196c
 # ╟─99262deb-6206-498f-bb94-a779578ffeab
-# ╟─1939ed6c-1238-4147-ae90-caae629452ce
-# ╟─ce31372c-4686-4896-bb76-f273777bf758
+# ╠═1939ed6c-1238-4147-ae90-caae629452ce
+# ╠═ce31372c-4686-4896-bb76-f273777bf758
 # ╟─ffa851f2-a234-4ee1-85ee-4c611e7c1385
 # ╟─16016799-3ac3-471c-add6-1f38e0fe9749
-# ╟─941d5524-11ac-436e-8526-563ef2ad28b6
+# ╠═941d5524-11ac-436e-8526-563ef2ad28b6
 # ╟─cd3d134c-8175-443b-8fdd-02dbca473159
 # ╟─b2767029-86b5-4b62-b1fb-a0c27c7e118d
 # ╟─75fefe3f-2170-4231-a676-f2b8aef49100
 # ╟─eaef6efb-d614-4b54-8599-e5173ac591ab
 # ╟─019f57eb-ee5f-4500-958d-830186d62814
-# ╠═73b4d226-4062-44d7-9f23-b16864b93b31
-# ╠═f9e47e41-d9c2-405a-9c31-07db084c986e
+# ╟─80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
+# ╠═bf17466e-b5a3-4180-acfb-362c5da55d70
+# ╠═1a5e09f6-0b83-4e13-af89-4364e219ff16
 # ╠═fe609884-c598-4391-ab06-4ba7166b65ff
 # ╠═f6119a25-00e6-4a65-a3d8-8a56e8719fb5
 # ╠═f1233e72-adc0-43dc-8796-055cf9baf4e7
+# ╠═185cdee9-84e7-443f-a6a3-7ae6369e956e
+# ╟─ff118324-f687-44d6-aca9-dc84802767e2
+# ╟─73b4d226-4062-44d7-9f23-b16864b93b31
+# ╟─8c727358-0695-43ae-96b2-ded282e0dedf
+# ╟─370b5a64-9fcb-4431-99c1-d0dee3f64932
+# ╟─21c26eca-5896-4a67-801a-86a228edc2c5
+# ╟─a20538f8-1edb-44dc-bee9-989dc6926ee9
+# ╟─7d5c48ff-5806-4bb2-acdd-98a508627bac
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
