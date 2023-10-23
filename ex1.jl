@@ -307,6 +307,12 @@ Instead of doing linear algebra on one big matrix to get a speedup, you could us
 # ╔═╡ bf17466e-b5a3-4180-acfb-362c5da55d70
 num_systems = 100
 
+# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
+let # Test CUBLAS reports that all solves suceeded
+	CUDA.@sync output_flag_d
+	@test all(collect(output_flag_d).==0)
+end
+
 # ╔═╡ 80a04a89-b23e-4d2f-9a4d-ce887ba0cf61
 md"""
 To find other batched functions or to make sense of the outputs, you'll want to look at the documentation for [CUBLAS](https://docs.nvidia.com/cuda/cublas/index.html), the library of CUDA functions that provide these operations.  For some problem sizes, the CUBLAS functions are very efficient.  For other problem sizes, you can work more efficiently using multiple asyncrhonous kernel calls or just using multi-threading on the CPU. 
@@ -319,6 +325,20 @@ Now we'll plot benchmarks as a function of the number of systems to solve for a 
 
 # ╔═╡ 185cdee9-84e7-443f-a6a3-7ae6369e956e
 n_batched_matrices = 128
+
+# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
+begin
+	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
+	d_A = copy_array_of_arrays_to_gpu(A)
+	d_b = copy_array_of_arrays_to_gpu(b)
+	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
+end
+
+# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
+let # Check absolute value of worst element of all solutions
+	CUDA.@sync output_x_d
+	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
+end
 
 # ╔═╡ 15265935-4b90-4d6d-9540-c13c2e4bd6cb
 md"""
@@ -401,26 +421,6 @@ function copy_array_of_arrays_to_gpu(A::TArrayOuter; force_sync::Bool = false) w
 		CUDA.@sync d_A
 	end
 	return d_A
-end
-
-# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
-begin
-	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
-	d_A = copy_array_of_arrays_to_gpu(A)
-	d_b = copy_array_of_arrays_to_gpu(b)
-	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
-end
-
-# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
-let # Test CUBLAS reports that all solves suceeded
-	CUDA.@sync output_flag_d
-	@test all(collect(output_flag_d).==0)
-end
-
-# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
-let # Check absolute value of worst element of all solutions
-	CUDA.@sync output_x_d
-	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
 end
 
 # ╔═╡ c1d3f9f3-269f-43b4-9336-b376b7e98361
