@@ -8,16 +8,17 @@
 ## Time requested: 0 hours, 15 minutes, 0 seconds
 #SBATCH --time=0:15:00 
 
-## Ask for multiple CPU cores on one node
+## Ask for one core of one node, plus 1 GPU
 #SBATCH --nodes=1 
 #SBATCH --ntasks-per-node=1
 #SBATCH --ntasks=1 
+#SBATCH --gpus=1
 
 ## Promise that each processor will use no more than 1GB of RAM
 #SBATCH --mem-per-cpu=8GB
 
 ## Save STDOUT and STDERR into one file (%j will expand to become the SLURM job id)
-#SBATCH --output=ex2_parallel_1node_%j.log
+#SBATCH --output=ex2_%j.log
 ## Optionally could uncomment line below to write STDERR to a separate file
 ##SBATCH --error=ex2_%j.stderr  
 
@@ -43,6 +44,15 @@ echo "About to change into $SLURM_SUBMIT_DIR"
 cd $SLURM_SUBMIT_DIR            # Change into directory where job was submitted from
 
 # env |grep SLURM               # Uncomment if you want to see all the environment variables set
+
+FILE=./Project_has_been_instantiated
+if [ -f "$FILE" ]; then
+    echo "# $FILE exists.  Assuming no need to instantiate project to install packages."
+else
+    echo "# $FILE does not exist. Will install relevant packages."
+    julia --project=. -e 'import Pkg; Pkg.instantiate() '
+    touch $FILE
+fi
 
 date
 echo "About to start Julia, using $SLURM_TASKS_PER_NODE CPU cores on one node"
