@@ -57,8 +57,9 @@ fi
 
 date
 echo "# About to run Pluto notebook and generate HTML version with outputs, using $SLURM_TASKS_PER_NODE CPU cores on one node"
-julia --project -t $SLURM_TASKS_PER_NODE -e 'import PlutoSliderServer; PlutoSliderServer.export_notebook("ex1.jl")'
+# export JULIA_PKG_OFFLINE="true"
+julia --project -t $SLURM_TASKS_PER_NODE -e 'import Pkg, PlutoSliderServer; Pkg.offline(); PlutoSliderServer.export_notebook("ex1.jl")'
 # To just run without saving HTML version
-#julia -t $SLURM_TASKS_PER_NODE -e 'using Pkg, Pluto; Pluto.activate_notebook_environment("ex1.jl"); Pkg.instantiate(); include("ex1.jl")'  
+#julia -t $SLURM_TASKS_PER_NODE -e 'using Pkg, Pluto; Pkg.offline(); Pluto.activate_notebook_environment("ex1.jl"); Pkg.instantiate(); include("ex1.jl")'  
 echo "Julia exited"
 date
