@@ -1,11 +1,15 @@
 ### A Pluto.jl notebook ###
-# v0.19.30
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
 
 # ╔═╡ 4be1d24b-1932-4b75-943e-8cc8caf24241
-using CUDA
+begin
+        import Pkg
+        Pkg.offline()
+        using CUDA
+end
 
 # ╔═╡ 3e61f670-5113-40f8-b8f4-4982c663eb19
 begin
@@ -320,26 +324,6 @@ Now we'll plot benchmarks as a function of the number of systems to solve for a 
 # ╔═╡ 185cdee9-84e7-443f-a6a3-7ae6369e956e
 n_batched_matrices = 128
 
-# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
-begin
-	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
-	d_A = copy_array_of_arrays_to_gpu(A)
-	d_b = copy_array_of_arrays_to_gpu(b)
-	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
-end
-
-# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
-let # Test CUBLAS reports that all solves suceeded
-	CUDA.@sync output_flag_d
-	@test all(collect(output_flag_d).==0)
-end
-
-# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
-let # Check absolute value of worst element of all solutions
-	CUDA.@sync output_x_d
-	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
-end
-
 # ╔═╡ 15265935-4b90-4d6d-9540-c13c2e4bd6cb
 md"""
 1g. How large a batch of 128x128 systems does the GPU need before it is faster than solving the same number and size systems on the CPU?  By what factor is the GPU faster (once you have a large enough number of systems)?
@@ -421,6 +405,26 @@ function copy_array_of_arrays_to_gpu(A::TArrayOuter; force_sync::Bool = false) w
 		CUDA.@sync d_A
 	end
 	return d_A
+end
+
+# ╔═╡ 1a5e09f6-0b83-4e13-af89-4364e219ff16
+begin
+	A, x, b = make_inputs_batched_Ax_eq_b(n_batched_matrices,num_systems)
+	d_A = copy_array_of_arrays_to_gpu(A)
+	d_b = copy_array_of_arrays_to_gpu(b)
+	output_qr_d, output_x_d, output_flag_d = CUBLAS.gels_batched('N', d_A, d_b) 
+end
+
+# ╔═╡ fe609884-c598-4391-ab06-4ba7166b65ff
+let # Test CUBLAS reports that all solves suceeded
+	CUDA.@sync output_flag_d
+	@test all(collect(output_flag_d).==0)
+end
+
+# ╔═╡ f1233e72-adc0-43dc-8796-055cf9baf4e7
+let # Check absolute value of worst element of all solutions
+	CUDA.@sync output_x_d
+	maximum(map(i->maximum(abs.(x[i].-collect(output_x_d[i]))), 1:num_systems))
 end
 
 # ╔═╡ c1d3f9f3-269f-43b4-9336-b376b7e98361
@@ -668,6 +672,7 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoTeachingTools = "661c6b06-c737-4d37-b85c-46df65de6f69"
 PlutoTest = "cb4044da-4d16-4ffa-a6a3-8cad7f73ebdc"
@@ -689,7 +694,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.2"
 manifest_format = "2.0"
-project_hash = "06ea7489860cf846a67337e83d56778caa52bc8e"
+project_hash = "eb44755b28259f6b403965018f3f7670d056d171"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
