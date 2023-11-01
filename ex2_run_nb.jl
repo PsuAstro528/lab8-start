@@ -1,3 +1,5 @@
+import Pkg
+Pkg.offline()
 using NBInclude
 
 ENV["GKSwstype"]="nul"   # To prevent Plots pacakge from trying to display plot
